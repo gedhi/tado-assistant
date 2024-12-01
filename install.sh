@@ -95,6 +95,8 @@ set_env_variables() {
         read -rp "Enable geofencing check for account $i? (true/false, default: true): " ENABLE_GEOFENCING
         read -rp "Enable log for account $i? (true/false, default: false): " ENABLE_LOG
         read -rp "Enter log file path for account $i (default: /var/log/tado-assistant.log): " LOG_FILE
+        read -rp "Enter Telegram Token for account $i (default: ): " TELEGRAM_BOT_TOKEN
+        read -rp "Enter Telegram ChatID for account $i (default: ): " TELEGRAM_CHAT_ID
 
         # Validate credentials
         if validate_credentials "$TADO_USERNAME" "$TADO_PASSWORD"; then
@@ -111,6 +113,8 @@ set_env_variables() {
                 echo "export ENABLE_GEOFENCING_$i='${ENABLE_GEOFENCING:-true}'"
                 echo "export ENABLE_LOG_$i='${ENABLE_LOG:-false}'"
                 echo "export LOG_FILE_$i='${LOG_FILE:-/var/log/tado-assistant.log}'"
+                echo "export TELEGRAM_BOT_TOKEN_$i='${TELEGRAM_BOT_TOKEN:-''}'"
+                echo "export TELEGRAM_CHAT_ID_$i='${TELEGRAM_CHAT_ID:-''}'"
             } >> /etc/tado-assistant.env
 
             i=$((i+1)) # Move to next account only if validation succeeds

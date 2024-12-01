@@ -10,6 +10,20 @@ mkdir -p "$LOG_DIR"
 declare -A OPEN_WINDOW_ACTIVATION_TIMES TOKENS EXPIRY_TIMES HOME_IDS
 LAST_MESSAGE="" # Used to prevent duplicate messages
 
+
+# Funzione per inviare notifiche Telegram
+send_telegram_message() {
+    local message=$1
+    if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="${message}"
+        handle_curl_error
+    else
+        log_message "Telegram bot token or chat ID is not set. Message not sent."
+    fi
+}
+
 # Reset the log file if it's older than 10 days
 reset_log_if_needed() {
     if [ ! -f "$LOG_FILE" ]; then
@@ -194,7 +208,7 @@ homeState() {
                     -H "Authorization: Bearer ${TOKENS[$account_index]}"
                 handle_curl_error
                 log_message "🌬️ Account $account_index: Activating open window mode for $zone_name."
-
+                send_telegram_message "🌬️ Account $account_index: Activating open window mode for $zone_name."
                 # Record the activation time
                 OPEN_WINDOW_ACTIVATION_TIMES[$zone_id]=$current_time
             fi
@@ -212,6 +226,8 @@ for (( i=1; i<=NUM_ACCOUNTS; i++ )); do
     ENABLE_GEOFENCING_VAR="ENABLE_GEOFENCING_$i"
     ENABLE_LOG_VAR="ENABLE_LOG_$i"
     LOG_FILE_VAR="LOG_FILE_$i"
+    TELEGRAM_BOT_TOKEN_VAR="TELEGRAM_BOT_TOKEN_$i"
+    TELEGRAM_CHAT_ID_VAR="TELEGRAM_CHAT_ID_$i"
 
     # Fetch dynamic variables
     CHECKING_INTERVAL=${!CHECKING_INTERVAL_VAR:-15}
@@ -219,6 +235,8 @@ for (( i=1; i<=NUM_ACCOUNTS; i++ )); do
     ENABLE_GEOFENCING=${!ENABLE_GEOFENCING_VAR:-false}
     ENABLE_LOG=${!ENABLE_LOG_VAR:-false}
     LOG_FILE=${!LOG_FILE_VAR:-'/var/log/tado-assistant.log'}
+    TELEGRAM_BOT_TOKEN=${!TELEGRAM_BOT_TOKEN_VAR:-''}
+    TELEGRAM_CHAT_ID=${!TELEGRAM_CHAT_ID_VAR:-''}
 
     # Login and get the home ID
     login "$i" "$USERNAME_VAR" "$PASSWORD_VAR"
