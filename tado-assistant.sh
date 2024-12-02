@@ -141,21 +141,25 @@ homeState() {
           log_message "🚶 Account $account_index: Home is in AWAY Mode and there are no devices at home."
       elif [ ${#devices_home[@]} -eq 0 ] && [ "$home_state" == "HOME" ]; then
           log_message "🏠 Account $account_index: Home is in HOME Mode but there are no devices at home."
+          send_telegram_message "🏠 Account $account_index: Home is in HOME Mode but there are no devices at home."
           curl -s -X PUT "https://my.tado.com/api/v2/homes/$home_id/presenceLock" \
               -H "Authorization: Bearer ${TOKENS[$account_index]}" \
               -H "Content-Type: application/json" \
               -d '{"homePresence": "AWAY"}'
           handle_curl_error
           log_message "Done! Activated AWAY mode for account $account_index."
+          send_telegram_message "Done! Activated AWAY mode for account $account_index."
       elif [ ${#devices_home[@]} -gt 0 ] && [ "$home_state" == "AWAY" ]; then
           devices_str=$(IFS=,; echo "${devices_home[*]}")
           log_message "🚶 Account $account_index: Home is in AWAY Mode but the devices $devices_str are at home."
+          send_telegram_message "🚶 Account $account_index: Home is in AWAY Mode but the devices $devices_str are at home."
           curl -s -X PUT "https://my.tado.com/api/v2/homes/$home_id/presenceLock" \
               -H "Authorization: Bearer ${TOKENS[$account_index]}" \
               -H "Content-Type: application/json" \
               -d '{"homePresence": "HOME"}'
           handle_curl_error
           log_message "Done! Activated HOME mode for account $account_index."
+          send_telegram_message "Done! Activated HOME mode for account $account_index."
       fi
     else
       log_message "🏠 Account $account_index: Geofencing disabled."
@@ -197,6 +201,7 @@ homeState() {
                             -H "Authorization: Bearer ${TOKENS[$account_index]}"
                         handle_curl_error
                         log_message "✅ Account $account_index: Cancelled open window mode for $zone_name."
+                        send_telegram_message "✅ Account $account_index: Cancelled open window mode for $zone_name."
                         unset "OPEN_WINDOW_ACTIVATION_TIMES[$zone_id]"
                         continue
                     fi
